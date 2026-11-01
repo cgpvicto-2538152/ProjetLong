@@ -23,6 +23,7 @@ def connection_bd() -> Any:
         port=os.getenv('DB_PORT')
     )
 
+# region Fonction récupération des données
 
 def recuperer_croutes(connection: MySQLConnection) -> dict:
     croutes = {}
@@ -45,7 +46,6 @@ def recuperer_croutes(connection: MySQLConnection) -> dict:
     finally:
         if cursor is not None:
             cursor.close()
-        connection.close()
 
     return croutes
 
@@ -71,7 +71,6 @@ def recuperer_sauces(connection: MySQLConnection) -> dict:
     finally:
         if cursor is not None:
             cursor.close()
-        connection.close()
 
     return sauces
 
@@ -97,12 +96,11 @@ def recuperer_garnitures(connection: MySQLConnection) -> dict:
     finally:
         if cursor is not None:
             cursor.close()
-        connection.close()
 
     return garnitures
 
 
-def recuperer_client( connection: MySQLConnection, nom: str, telephone: str) -> dict | None:
+def recuperer_client(connection: MySQLConnection, nom: str, telephone: str) -> dict | None:
 
     client = None
     cursor: MySQLCursor | None = None
@@ -134,7 +132,6 @@ def recuperer_client( connection: MySQLConnection, nom: str, telephone: str) -> 
     finally:
         if cursor is not None:
             cursor.close()
-        connection.close()
 
     return client
 
@@ -176,7 +173,6 @@ def recuperer_commandes_par_statut(connection: MySQLConnection) -> dict[str, lis
     finally:
         if cursor is not None:
             cursor.close()
-        connection.close()
 
     return commandes
 
@@ -217,7 +213,6 @@ def recuperer_details_commande(connection: MySQLConnection, id_commande: int) ->
     finally:
         if cursor is not None:
             cursor.close()
-        connection.close()
 
     return commande
 
@@ -264,11 +259,155 @@ def recuperer_pizzas_commande(connection: MySQLConnection, id_commande: int) -> 
     finally:
         if cursor is not None:
             cursor.close()
-        connection.close()
 
     return list(pizzas.values())
 
+# endregion Fonction récupration des données
 
+
+# region Fonction insertion des données
+
+def ajouter_client(connection: MySQLConnection, nom: str, telephone: str) -> int:
+    cursor: MySQLCursor | None = None
+
+    try:
+        cursor = connection.cursor()
+
+        requete = """
+            INSERT INTO Clients (nom, num_telephone)
+            VALUES (%(nom)s, %(telephone)s)
+        """
+
+        cursor.execute(requete, {'nom': nom, 'telephone': telephone})
+
+        id_client = cursor.lastrowid
+
+        if id_client is None:
+            raise Exception("Impossible de récupérer l'identifiant du client.")
+
+        return id_client
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+
+def ajouter_commande(connection: MySQLConnection, id_client: int, adresse: str) -> int:
+    cursor: MySQLCursor | None = None
+
+    try:
+        cursor = connection.cursor()
+
+        requete = """
+            INSERT INTO Commandes (client_id, adresse_livraison)
+            VALUES (%(id_client)s, %(adresse)s)
+        """
+
+        cursor.execute(requete, {'id_client': id_client,'adresse': adresse})
+
+        id_commande = cursor.lastrowid
+
+        if id_commande is None:
+            raise Exception("Impossible de récupérer l'identifiant de la commande.")
+
+        return id_commande
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+
+def ajouter_pizza(connection: MySQLConnection, id_commande: int, id_croute: int, id_sauce: int) -> int:
+    cursor: MySQLCursor | None = None
+
+    try:
+        cursor = connection.cursor()
+
+        requete = """
+            INSERT INTO Pizzas (commande_id, croute_id, sauce_id)
+            VALUES (%(id_commande)s, %(id_croute)s, %(id_sauce)s)
+        """
+
+        cursor.execute(requete, {'id_commande': id_commande,'id_croute': id_croute,'id_sauce': id_sauce})
+
+        id_pizza = cursor.lastrowid
+
+        if id_pizza is None:
+            raise Exception("Impossible de récupérer l'identifiant de la pizza.")
+
+        return id_pizza
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+
+def ajouter_garnitures(connection: MySQLConnection, id_pizza: int, id_garnitures: list[int] ) -> None:
+    if len(id_garnitures) > 4:
+        raise ValueError("Une pizza ne peut pas avoir plus de quatre garnitures.")
+
+    # set garde se qui est unique, vérifie tout est unique et donc meme longueur apres le set()
+    if len(id_garnitures) != len(set(id_garnitures)):
+        raise ValueError("Une garniture ne peut pas être ajoutée plusieurs fois.")
+
+    cursor: MySQLCursor | None = None
+
+    try:
+        cursor = connection.cursor()
+
+        requete = """
+            INSERT INTO Pizzas_garnitures (pizza_id, garniture_id)
+            VALUES (%(id_pizza)s, %(id_garniture)s)
+        """
+
+        for id_garniture in id_garnitures:
+            cursor.execute(requete, {'id_pizza': id_pizza,'id_garniture': id_garniture})
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+
+def ajouter_commande_complete(connection: MySQLConnection, nom: str, telephone: str, adresse: str, pizzas: list[dict] ) -> int:
+
+    try:
+        connection.start_transaction()
+
+        client = recuperer_client(connection, nom, telephone)
+
+        if client is None:
+            id_client = ajouter_client(connection, nom, telephone)
+        else:
+            id_client = client['id']
+
+        id_commande = ajouter_commande(connection, id_client, adresse)
+
+        for pizza in pizzas:
+            id_pizza = ajouter_pizza(
+                connection,
+                id_commande,
+                pizza['id_croute'],
+                pizza['id_sauce']
+            )
+
+            ajouter_garnitures(
+                connection,
+                id_pizza,
+                pizza.get('garnitures', [])
+            )
+
+        connection.commit()
+
+        return id_commande
+
+    except Exception:
+        connection.rollback()
+        raise
+
+# endregion Fonction insertion des données
+
+
+# region Routes
 
 @app.route('/')
 def afficher_index() -> str:
@@ -284,6 +423,7 @@ def afficher_commande() -> str:
 def afficher_livraisons() -> str:
     return render_template('livraisons.html')
 
+# endregion Routes
 
 # print("http://127.0.0.1:5000/")
 
