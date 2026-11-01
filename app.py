@@ -40,8 +40,8 @@ def recuperer_croutes(connection: MySQLConnection) -> dict:
         for id_croute, nom_croute in cursor.fetchall():
             croutes[id_croute] = nom_croute
 
-    except mysql.connector.Error as erreur:
-        print(f"Erreur MySQL : {erreur}")
+    except mysql.connector.Error:
+        raise
 
     finally:
         if cursor is not None:
@@ -65,8 +65,8 @@ def recuperer_sauces(connection: MySQLConnection) -> dict:
         for id_sauce, nom_sauce in cursor.fetchall():
             sauces[id_sauce] = nom_sauce
 
-    except mysql.connector.Error as erreur:
-        print(f"Erreur MySQL : {erreur}")
+    except mysql.connector.Error:
+        raise
 
     finally:
         if cursor is not None:
@@ -90,8 +90,8 @@ def recuperer_garnitures(connection: MySQLConnection) -> dict:
         for id_garniture, nom_garniture in cursor.fetchall():
             garnitures[id_garniture] = nom_garniture
 
-    except mysql.connector.Error as erreur:
-        print(f"Erreur MySQL : {erreur}")
+    except mysql.connector.Error:
+        raise
 
     finally:
         if cursor is not None:
@@ -126,8 +126,8 @@ def recuperer_client(connection: MySQLConnection, nom: str, telephone: str) -> d
                 "telephone": resultat[2]
             }
 
-    except mysql.connector.Error as erreur:
-        print(f"Erreur MySQL : {erreur}")
+    except mysql.connector.Error:
+        raise
 
     finally:
         if cursor is not None:
@@ -167,8 +167,8 @@ def recuperer_commandes_par_statut(connection: MySQLConnection) -> dict[str, lis
                 "date": date_commande
             })
 
-    except mysql.connector.Error as erreur:
-        print(f"Erreur MySQL : {erreur}")
+    except mysql.connector.Error:
+        raise
 
     finally:
         if cursor is not None:
@@ -207,8 +207,8 @@ def recuperer_details_commande(connection: MySQLConnection, id_commande: int) ->
                 "statut": resultat[5]
             }
 
-    except mysql.connector.Error as erreur:
-        print(f"Erreur MySQL : {erreur}")
+    except mysql.connector.Error:
+        raise
 
     finally:
         if cursor is not None:
@@ -253,8 +253,8 @@ def recuperer_pizzas_commande(connection: MySQLConnection, id_commande: int) -> 
             if garniture is not None:
                 pizzas[id_pizza]["garnitures"].append(garniture)
 
-    except mysql.connector.Error as erreur:
-        print(f"Erreur MySQL : {erreur}")
+    except mysql.connector.Error:
+        raise
 
     finally:
         if cursor is not None:
