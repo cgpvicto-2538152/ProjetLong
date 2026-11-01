@@ -407,6 +407,38 @@ def ajouter_commande_complete(connection: MySQLConnection, nom: str, telephone: 
 # endregion Fonction insertion des données
 
 
+# region Fonction update de données
+
+def completer_livraison(connection: MySQLConnection, id_commande: int) -> None:
+    cursor: MySQLCursor | None = None
+
+    try:
+        cursor = connection.cursor()
+
+        requete = """
+            UPDATE Commandes
+            SET statut_id = (
+                SELECT id
+                FROM Status_commandes
+                WHERE statut_nom = 'Livrée'
+            )
+            WHERE id = %(id_commande)s
+        """
+
+        cursor.execute(requete, {'id_commande': id_commande})
+
+        if cursor.rowcount == 0:
+            # valide si sa fonctionne, sinon crée une erreur
+            raise ValueError("Commande introuvable.")
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+# endregion Fonction update de données
+
+
+
 # region Routes
 
 @app.route('/')
