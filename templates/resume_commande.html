@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Résumé de la commande</title>
+    </head>
+
+    <body>
+        <h1>Résumé de la commande</h1>
+        <h2>Client</h2>
+        <p>Nom : {{ commande.nom }}</p>
+        <p>Téléphone : {{ commande.telephone }}</p>
+        <p>Adresse : {{ commande.adresse }}</p>
+        <h2>Pizzas</h2>
+        <form method="POST" action="/commande/confirmer">
+
+            <input type="hidden" name="nom" value="{{ commande.nom }}">
+            <input type="hidden" name="telephone" value="{{ commande.telephone }}">
+            <input type="hidden" name="adresse" value="{{ commande.adresse }}">
+            <input type="hidden" name="nombre_pizzas" value="{{ commande.pizzas|length }}">
+
+            <div hidden>
+                {% for pizza in commande.pizzas %}
+                    {% set index_pizza = loop.index0 %}
+
+                    <input type="hidden" name="pizzas[{{ index_pizza }}][croute]" value="{{ pizza.id_croute }}">
+                    <input type="hidden" name="pizzas[{{ index_pizza }}][sauce]" value="{{ pizza.id_sauce }}">
+
+                    {% for id_garniture in pizza.garnitures %}
+                        <input type="hidden" name="pizzas[{{ index_pizza }}][garnitures]" value="{{ id_garniture }}">
+                    {% endfor %}
+                {% endfor %}
+            </div>
+
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Pizza</th>
+                        <th>Croûte</th>
+                        <th>Sauce</th>
+                        <th>Garnitures</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pizza in commande.pizzas %}
+                        <tr>
+                            <td>Pizza {{ loop.index }}</td>
+                            <td>{{ croutes[pizza.id_croute] }}</td>
+                            <td>{{ sauces[pizza.id_sauce] }}</td>
+                            <td>
+                                {% for id_garniture in pizza.garnitures %}
+                                    {{ garnitures[id_garniture] }}{% if not loop.last %},{% endif %}
+                                {% else %}
+                                    Aucune
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <br>
+            <button type="submit">Confirmer la commande</button>
+        </form>
+        <a href="/commande">Retour</a>
+    </body>
+
+</html>

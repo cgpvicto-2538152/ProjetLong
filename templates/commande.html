@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Faire une commande</title>
+    </head>
+
+    <body>
+        <h1>Passer une commande</h1>
+
+        {% if erreur %}
+            <p>Une erreur est survenue lors de la création de la commande. Veuillez réessayer.</p>
+        {% endif %}
+
+        <form method="POST">
+
+            <fieldset id="client">
+                <legend>Client:</legend>
+                <div>
+                    <label for="nom">Nom :</label>
+                    <input type="text" id="nom" name="nom" required>
+                </div>
+                <div>
+                    <label for="telephone">Numéro de téléphone :</label>
+                    <input type="tel" id="telephone" name="telephone" required>
+                </div>
+            </fieldset>
+
+            <fieldset id="commande">
+                <legend>Commande:</legend>
+                <div>
+                    <label for="adresse">Adresse :</label>
+                    <input type="text" id="adresse" name="adresse">
+                </div>
+                <h3>Pizzas:</h3>
+                <div id="liste-pizzas"></div>
+                <button type="button" id="ajouter-pizza">
+                    Ajouter une pizza
+                </button>
+                <input type="hidden" name="nombre_pizzas" id="nombre-pizzas" value="0">
+            </fieldset>
+
+            <button type="submit">Ajouter</button>
+
+        </form>
+
+        <a href="/">Retour au menu</a>
+
+        <template id="modele-pizza">
+            <fieldset class="pizza">
+                <legend>Pizza <span class="numero-pizza"></span>:</legend>
+                <fieldset>
+                    <legend>Choix de la croûte:</legend>
+                    {% for id_croute, nom_croute in croutes.items() %}
+                        <input type="radio" name="pizzas[idx_pizza][croute]" value="{{ id_croute }}"
+                            id="croute-idx_pizza-{{ id_croute }}">
+                        <label for="croute-idx_pizza-{{ id_croute }}">
+                            {{ nom_croute }}
+                        </label>
+                        <br>
+                    {% endfor %}
+                </fieldset>
+                <fieldset>
+                    <legend>Choix de la sauce:</legend>
+                    {% for id_sauce, nom_sauce in sauces.items() %}
+                        <input type="radio" name="pizzas[idx_pizza][sauce]" value="{{ id_sauce }}"
+                            id="sauce-idx_pizza-{{ id_sauce }}">
+                        <label for="sauce-idx_pizza-{{ id_sauce }}">
+                            {{ nom_sauce }}
+                        </label>
+                        <br>
+                    {% endfor %}
+                </fieldset>
+                <fieldset class="garniture">
+                    <legend>Choix des garnitures:</legend>
+                    <p>Maximum de 4 garnitures</p>
+                    {% for id_garniture, nom_garniture in garnitures.items() %}
+                        <input type="checkbox" name="pizzas[idx_pizza][garnitures]" value="{{ id_garniture }}"
+                            id="garniture-idx_pizza-{{ id_garniture }}">
+                        <label for="garniture-idx_pizza-{{ id_garniture }}">
+                            {{ nom_garniture }}
+                        </label>
+                        <br>
+                    {% endfor %}
+                </fieldset>
+            </fieldset>
+        </template>
+        <script>
+            const listePizzas = document.querySelector('#liste-pizzas');
+            const modelePizza = document.querySelector('#modele-pizza');
+            const nombrePizzas = document.querySelector('#nombre-pizzas');
+            let compteur = 0;
+
+            function ajouterPizza() {
+                const pizza = modelePizza.content.cloneNode(true);
+
+                compteur = compteur + 1;
+                const indexPizza = compteur - 1;
+
+                pizza.querySelector('.numero-pizza').textContent = compteur;
+
+                const champsPizza = pizza.querySelectorAll('input');
+                for (let i = 0; i < champsPizza.length; i++) {
+                    champsPizza[i].name = champsPizza[i].name.replaceAll('idx_pizza', indexPizza);
+                    champsPizza[i].id = champsPizza[i].id.replaceAll('idx_pizza', indexPizza);
+                }
+
+                const labelPizza = pizza.querySelectorAll('label');
+                for (let i = 0; i < labelPizza.length; i++) {
+                    labelPizza[i].htmlFor = labelPizza[i].htmlFor.replaceAll('idx_pizza', indexPizza);
+                }
+
+                const casesGarnitures = pizza.querySelectorAll('.garniture input[type="checkbox"]');
+                for (let i = 0; i < casesGarnitures.length; i++) {
+                    casesGarnitures[i].addEventListener('change', function(event) {
+                        let nombreGarnituresCochees = 0;
+                        for (let j = 0; j < casesGarnitures.length; j++) {
+                            if (casesGarnitures[j].checked) {
+                                nombreGarnituresCochees++;
+                            }
+                        }
+                        // Annuler la sélection si le maximum est dépassé.
+                        if (nombreGarnituresCochees > 4) {
+                            event.target.checked = false;
+                        }
+                    });
+                }
+                listePizzas.appendChild(pizza);
+                nombrePizzas.value = compteur;
+            }
+
+            document.querySelector('#ajouter-pizza').addEventListener('click', ajouterPizza);
+            ajouterPizza();
+
+        </script>
+    </body>
+
+</html>

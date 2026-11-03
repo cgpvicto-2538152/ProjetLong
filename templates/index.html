@@ -28,8 +28,13 @@
     </head>
 
     <body>
-        <a href="/commande">Nouvelle commande</a>
-        <a href="/livraisons">Gestion des livraisons</a>
+        {% if request.args.get('commande') == 'confirmee' %}
+            <p>Votre commande a été ajoutée avec succès !</p>
+        {% endif %}
+        <div>
+            <a href="/commande">Nouvelle commande</a>
+            <a href="/livraisons">Gestion des livraisons</a>
+        </div>
     </body>
 
 </html>

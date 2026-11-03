@@ -2,7 +2,7 @@ import os
 from typing import Any
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request
+from flask import Flask, redirect, render_template, request
 import mysql.connector
 from mysql.connector import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
@@ -13,6 +13,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
+# region Fonctions
 
 def connection_bd() -> Any:
     return mysql.connector.connect(
@@ -437,6 +438,7 @@ def completer_livraison(connection: MySQLConnection, id_commande: int) -> None:
 
 # endregion Fonction update de données
 
+# endregion Fonctions
 
 
 # region Routes
@@ -446,21 +448,184 @@ def afficher_index() -> str:
     return render_template('index.html')
 
 
-@app.route('/commande')
-def afficher_commande() -> str:
-    return render_template('commande.html')
+# region Commandes
+
+def recuperer_commande_formulaire(formulaire) -> dict:
+    nom = formulaire.get('nom', '').strip()
+    telephone = formulaire.get('telephone', '').strip()
+    adresse = formulaire.get('adresse', '').strip()
+
+    if not nom or not telephone:
+        raise ValueError("Informations du client invalides.")
+
+    try:
+        nombre_pizzas = int(formulaire.get('nombre_pizzas', 0))
+
+        if nombre_pizzas < 1:
+            raise ValueError("La commande doit contenir au moins une pizza.")
+
+        pizzas = []
+
+        for i in range(nombre_pizzas):
+
+            id_croute = int(formulaire[f'pizzas[{i}][croute]'])
+            id_sauce = int(formulaire[f'pizzas[{i}][sauce]'])
+
+            id_garnitures = [
+                int(id) for id in formulaire.getlist(f'pizzas[{i}][garnitures]')
+            ]
+
+            if len(id_garnitures) > 4:
+                raise ValueError("Maximum de 4 garnitures par pizza.")
+
+            if len(id_garnitures) != len(set(id_garnitures)):
+                raise ValueError("Garnitures en double.")
+
+            pizzas.append({
+                'id_croute': id_croute,
+                'id_sauce': id_sauce,
+                'garnitures': id_garnitures
+            })
+
+    except (ValueError, TypeError, KeyError) as erreur:
+        raise ValueError("Données de commande invalides.") from erreur
+
+    return {
+        'nom': nom,
+        'telephone': telephone,
+        'adresse': adresse,
+        'pizzas': pizzas
+    }
 
 
-@app.route('/livraisons')
-def afficher_livraisons() -> str:
-    return render_template('livraisons.html')
+@app.route('/commande', methods=['GET', 'POST'])
+def afficher_commande():
+
+    if request.method == 'GET':
+        connection = connection_bd()
+
+        try:
+            croutes = recuperer_croutes(connection)
+            sauces = recuperer_sauces(connection)
+            garnitures = recuperer_garnitures(connection)
+
+        finally:
+            connection.close()
+
+        return render_template('commande.html', croutes=croutes, sauces=sauces, garnitures=garnitures, erreur=request.args.get('erreur'))
+
+    try:
+        commande = recuperer_commande_formulaire(request.form)
+
+    except ValueError:
+        return redirect('/commande?erreur=1')
+
+    connection = connection_bd()
+
+    try:
+        croutes = recuperer_croutes(connection)
+        sauces = recuperer_sauces(connection)
+        garnitures = recuperer_garnitures(connection)
+
+    finally:
+        connection.close()
+
+    return render_template('resume_commande.html', commande=commande, croutes=croutes, sauces=sauces, garnitures=garnitures)
+
+@app.route('/commande/confirmer', methods=['POST'])
+def confirmer_commande():
+
+    try:
+        commande = recuperer_commande_formulaire(request.form)
+
+    except ValueError:
+        return redirect('/commande?erreur=1')
+
+    connection = None
+
+    try:
+        connection = connection_bd()
+
+        ajouter_commande_complete(
+            connection,
+            commande['nom'],
+            commande['telephone'],
+            commande['adresse'],
+            commande['pizzas']
+        )
+
+    except Exception as erreur:
+        print(f"Erreur lors de la création de la commande : {erreur}")
+        return redirect('/commande?erreur=1')
+
+    finally:
+        if connection is not None:
+            connection.close()
+
+    return redirect('/?commande=confirmee')
+
+# endregion Commandes
+
+# region Livraisons
+
+@app.route('/livraisons', methods=['GET'])
+def afficher_livraisons():
+
+    connection = None
+    commandes = {}
+    erreur = request.args.get('erreur')
+
+    try:
+        connection = connection_bd()
+        commandes = recuperer_commandes_par_statut(connection)
+
+    except Exception as erreur:
+        print(f"Erreur lors de la récupération des livraisons : {erreur}")
+        erreur = True
+
+    finally:
+        if connection is not None:
+            connection.close()
+
+    return render_template(
+        'livraisons.html',
+        commandes_attente=commandes.get('En attente', []),
+        commandes_terminees=commandes.get('Livrée', []),
+        erreur=erreur,
+        terminee=request.args.get('terminee')
+    )
+
+
+@app.route('/livraison/terminer/<int:id_commande>', methods=['POST'])
+def terminer_livraison(id_commande):
+    connection = None
+    try:
+        connection = connection_bd()
+        completer_livraison(connection, id_commande)
+        connection.commit()
+
+    except Exception as erreur:
+        print(f"Erreur lors de la finalisation de la livraison : {erreur}")
+
+        if connection is not None:
+            connection.rollback()
+
+        return redirect('/livraisons?erreur=1')
+
+    finally:
+        if connection is not None:
+            connection.close()
+
+    return redirect('/livraisons?terminee=1')
+
+# endregion Livraisons
 
 # endregion Routes
 
-# print("http://127.0.0.1:5000/")
+print("http://127.0.0.1:5000/")
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 # Tests

@@ -1,1 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
 
+    <head>
+        <meta charset="UTF-8">
+        <title>Livraisons</title>
+    </head>
+
+    <body>
+
+        <h1>Gestion des livraisons</h1>
+
+        {% if erreur %}
+            <p>Une erreur est survenue. Veuillez réessayer.</p>
+        {% endif %}
+
+        {% if terminee %}
+            <p>La livraison a été terminée avec succès !</p>
+        {% endif %}
+
+        <h2>Commandes en attente</h2>
+
+        {% if commandes_attente %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Commande</th>
+                        <th>Client</th>
+                        <th>Téléphone</th>
+                        <th>Adresse</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for commande in commandes_attente %}
+                        <tr>
+                            <td>{{ commande.id }}</td>
+                            <td>{{ commande.nom }}</td>
+                            <td>{{ commande.telephone }}</td>
+                            <td>{{ commande.adresse }}</td>
+                            <td>{{ commande.date }}</td>
+                            <td>
+                                <form method="POST" action="/livraison/terminer/{{ commande.id }}">
+                                    <button type="submit">Terminer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Aucune commande en attente.</p>
+        {% endif %}
+
+
+        <h2>Commandes livrées</h2>
+
+        {% if commandes_terminees %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Commande</th>
+                        <th>Client</th>
+                        <th>Téléphone</th>
+                        <th>Adresse</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for commande in commandes_terminees %}
+                        <tr>
+                            <td>{{ commande.id }}</td>
+                            <td>{{ commande.nom }}</td>
+                            <td>{{ commande.telephone }}</td>
+                            <td>{{ commande.adresse }}</td>
+                            <td>{{ commande.date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Aucune commande livrée.</p>
+        {% endif %}
+
+        <br>
+        <a href="/">Retour au menu</a>
+
+    </body>
+
+</html>
