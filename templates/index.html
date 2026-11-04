@@ -5,29 +5,10 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Pizzeria</title>
-
-        <style>
-            body {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                gap: 15px;
-            }
-
-            a {
-                padding: 12px 20px;
-                border: 1px solid orange;
-                border-radius: 6px;
-                text-decoration: none;
-                color: black;
-                background-color: beige;
-            }
-
-        </style>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
 
-    <body>
+    <body class="accueil">
         {% if request.args.get('commande') == 'confirmee' %}
             <p>Votre commande a été ajoutée avec succès !</p>
         {% endif %}

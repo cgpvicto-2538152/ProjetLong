@@ -1,0 +1,77 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    font: 16px Arial, sans-serif;
+    color: #493942;
+    background: #fff9fb;
+}
+
+h1,
+h2,
+h3 {
+    color: #80576a;
+}
+
+fieldset {
+    margin: 14px 0;
+    border: 1px solid #e5cbd6;
+}
+
+input[type="text"],
+input[type="tel"] {
+    padding: 7px;
+    border: 1px solid #d9c5cd;
+    border-radius: 4px;
+}
+
+button,
+.accueil a {
+    margin: 8px 8px 0 0;
+    padding: 8px 13px;
+    border: 1px solid #e5cbd6;
+    border-radius: 5px;
+    color: #704b5c;
+    background: #f8eaf0;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+button:hover,
+.accueil a:hover {
+    background: #f2dce5;
+}
+
+a {
+    display: inline-block;
+    margin-top: 16px;
+    color: #9b6079;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fffdfd;
+}
+
+th,
+td {
+    padding: 8px;
+    border: 1px solid #e5cbd6;
+}
+
+th {
+    background: #f8eaf0;
+}
+
+.accueil {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
