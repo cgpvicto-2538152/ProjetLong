@@ -16,6 +16,12 @@ app = Flask(__name__)
 # region Fonctions
 
 def connection_bd() -> Any:
+    """
+    Ouvre une connexion à la base de données.
+
+    Retourne:
+        Any: La connexion à la base de données.
+    """
     return mysql.connector.connect(
         host=os.getenv('DB_HOST'),
         user=os.getenv('DB_USER'),
@@ -27,6 +33,15 @@ def connection_bd() -> Any:
 # region Fonction récupération des données
 
 def recuperer_croutes(connection: MySQLConnection) -> dict:
+    """
+    Récupère les types de croûtes.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+
+    Retourne:
+        dict: Les croûtes avec leur identifiant et leur nom.
+    """
     croutes = {}
     cursor: MySQLCursor | None = None
 
@@ -52,6 +67,15 @@ def recuperer_croutes(connection: MySQLConnection) -> dict:
 
 
 def recuperer_sauces(connection: MySQLConnection) -> dict:
+    """
+    Récupère les types de sauces.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+
+    Retourne:
+        dict: Les sauces avec leur identifiant et leur nom.
+    """
     sauces = {}
     cursor: MySQLCursor | None = None
 
@@ -77,6 +101,15 @@ def recuperer_sauces(connection: MySQLConnection) -> dict:
 
 
 def recuperer_garnitures(connection: MySQLConnection) -> dict:
+    """
+    Récupère les types de garnitures.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+
+    Retourne:
+        dict: Les garnitures avec leur identifiant et leur nom.
+    """
     garnitures = {}
     cursor: MySQLCursor | None = None
 
@@ -102,6 +135,17 @@ def recuperer_garnitures(connection: MySQLConnection) -> dict:
 
 
 def recuperer_client(connection: MySQLConnection, nom: str, telephone: str) -> dict | None:
+    """
+    Cherche un client avec son nom et son numéro de téléphone.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        nom (str): Le nom du client.
+        telephone (str): Le numéro de téléphone du client.
+
+    Retourne:
+        dict | None: Les informations du client ou None si le client n'existe pas.
+    """
 
     client = None
     cursor: MySQLCursor | None = None
@@ -138,6 +182,15 @@ def recuperer_client(connection: MySQLConnection, nom: str, telephone: str) -> d
 
 
 def recuperer_commandes_par_statut(connection: MySQLConnection) -> dict[str, list[dict]]:
+    """
+    Récupère les commandes trier par statut.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+
+    Retourne:
+        dict[str, list[dict]]: Les commandes classées par statut.
+    """
     commandes = {}
     cursor: MySQLCursor | None = None
 
@@ -179,6 +232,16 @@ def recuperer_commandes_par_statut(connection: MySQLConnection) -> dict[str, lis
 
 
 def recuperer_details_commande(connection: MySQLConnection, id_commande: int) -> dict | None:
+    """
+    Récupère les détails d'une commande.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        id_commande (int): L'identifiant de la commande.
+
+    Retourne:
+        dict | None: Les détails de la commande ou None si elle n'existe pas.
+    """
 
     commande = None
     cursor: MySQLCursor | None = None
@@ -219,6 +282,16 @@ def recuperer_details_commande(connection: MySQLConnection, id_commande: int) ->
 
 
 def recuperer_pizzas_commande(connection: MySQLConnection, id_commande: int) -> list[dict]:
+    """
+    Récupère les pizzas d'une commande.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        id_commande (int): L'identifiant de la commande.
+
+    Retourne:
+        list[dict]: Les pizzas avec leur croûte, leur sauce et leurs garnitures.
+    """
 
     pizzas = {}
     cursor: MySQLCursor | None = None
@@ -269,6 +342,20 @@ def recuperer_pizzas_commande(connection: MySQLConnection, id_commande: int) -> 
 # region Fonction insertion des données
 
 def ajouter_client(connection: MySQLConnection, nom: str, telephone: str) -> int:
+    """
+    Ajoute un client dans la base de données.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        nom (str): Le nom du client.
+        telephone (str): Le numéro de téléphone du client.
+
+    Retourne:
+        int: L'identifiant du nouveau client.
+
+    Exceptions:
+        Exception: Si l'identifiant du client ne peut pas être récupéré.
+    """
     cursor: MySQLCursor | None = None
 
     try:
@@ -294,6 +381,20 @@ def ajouter_client(connection: MySQLConnection, nom: str, telephone: str) -> int
 
 
 def ajouter_commande(connection: MySQLConnection, id_client: int, adresse: str) -> int:
+    """
+    Ajoute une commande dans la base de données.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        id_client (int): L'identifiant du client.
+        adresse (str): L'adresse de livraison de la commande.
+
+    Retourne:
+        int: L'identifiant de la nouvelle commande.
+
+    Exceptions:
+        Exception: Si l'identifiant de la commande ne peut pas être récupéré.
+    """
     cursor: MySQLCursor | None = None
 
     try:
@@ -319,6 +420,21 @@ def ajouter_commande(connection: MySQLConnection, id_client: int, adresse: str) 
 
 
 def ajouter_pizza(connection: MySQLConnection, id_commande: int, id_croute: int, id_sauce: int) -> int:
+    """
+    Ajoute une pizza à une commande.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        id_commande (int): L'identifiant de la commande.
+        id_croute (int): L'identifiant du type de croûte.
+        id_sauce (int): L'identifiant du type de sauce.
+
+    Retourne:
+        int: L'identifiant de la nouvelle pizza.
+
+    Exceptions:
+        Exception: Si l'identifiant de la pizza ne peut pas être récupéré.
+    """
     cursor: MySQLCursor | None = None
 
     try:
@@ -344,6 +460,22 @@ def ajouter_pizza(connection: MySQLConnection, id_commande: int, id_croute: int,
 
 
 def ajouter_garnitures(connection: MySQLConnection, id_pizza: int, id_garnitures: list[int] ) -> None:
+    """
+    Ajoute des garnitures à une pizza.
+
+    Une pizza peut avoir un maximum de quatre garnitures.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        id_pizza (int): L'identifiant de la pizza.
+        id_garnitures (list[int]): Les identifiants des garnitures.
+
+    Retourne:
+        None
+
+    Exceptions:
+        ValueError: Si la liste contient plus de quatre garnitures ou des doublons.
+    """
     if len(id_garnitures) > 4:
         raise ValueError("Une pizza ne peut pas avoir plus de quatre garnitures.")
 
@@ -370,6 +502,25 @@ def ajouter_garnitures(connection: MySQLConnection, id_pizza: int, id_garnitures
 
 
 def ajouter_commande_complete(connection: MySQLConnection, nom: str, telephone: str, adresse: str, pizzas: list[dict] ) -> int:
+    """
+    Crée une commande complète.
+
+    La fonction cherche d'abord le client. Si le client n'existe pas, elle le crée.
+    Elle crée ensuite la commande, les pizzas et leurs garnitures.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        nom (str): Le nom du client.
+        telephone (str): Le numéro de téléphone du client.
+        adresse (str): L'adresse de livraison de la commande.
+        pizzas (list[dict]): Les pizzas à ajouter, avec leurs choix et garnitures.
+
+    Retourne:
+        int: L'identifiant de la nouvelle commande.
+
+    Exceptions:
+        Exception: Si une étape échoue. La transaction est annulée.
+    """
 
     try:
         connection.start_transaction()
@@ -411,6 +562,19 @@ def ajouter_commande_complete(connection: MySQLConnection, nom: str, telephone: 
 # region Fonction update de données
 
 def completer_livraison(connection: MySQLConnection, id_commande: int) -> None:
+    """
+    Marque une commande comme livrée.
+
+    Paramètres:
+        connection (MySQLConnection): La connexion à la base de données.
+        id_commande (int): L'identifiant de la commande.
+
+    Retourne:
+        None
+
+    Exceptions:
+        ValueError: Si la commande n'existe pas.
+    """
     cursor: MySQLCursor | None = None
 
     try:
@@ -445,12 +609,30 @@ def completer_livraison(connection: MySQLConnection, id_commande: int) -> None:
 
 @app.route('/')
 def afficher_index() -> str:
+    """
+    Affiche la page d'accueil.
+
+    Retourne:
+        str: Le contenu HTML de la page.
+    """
     return render_template('index.html')
 
 
 # region Commandes
 
 def recuperer_commande_formulaire(formulaire) -> dict:
+    """
+    Récupère et vérifie les données du formulaire de commande.
+
+    Paramètres:
+        formulaire: Les données du formulaire.
+
+    Retourne:
+        dict: Les informations du client et la liste des pizzas.
+
+    Exceptions:
+        ValueError: Si les données du formulaire sont invalides.
+    """
     nom = formulaire.get('nom', '').strip()
     telephone = formulaire.get('telephone', '').strip()
     adresse = formulaire.get('adresse', '').strip()
@@ -500,6 +682,12 @@ def recuperer_commande_formulaire(formulaire) -> dict:
 
 @app.route('/commande', methods=['GET', 'POST'])
 def afficher_commande():
+    """
+    Affiche le formulaire de commande ou son résumé.
+
+    Retourne:
+        str | Response: La page de commande ou une redirection si les données sont invalides.
+    """
 
     if request.method == 'GET':
         connection = connection_bd()
@@ -534,6 +722,12 @@ def afficher_commande():
 
 @app.route('/commande/confirmer', methods=['POST'])
 def confirmer_commande():
+    """
+    Confirme une commande et l'ajoute à la base de données.
+
+    Retourne:
+        Response: Une redirection vers l'accueil ou vers le formulaire en cas d'erreur.
+    """
 
     try:
         commande = recuperer_commande_formulaire(request.form)
@@ -570,6 +764,12 @@ def confirmer_commande():
 
 @app.route('/livraisons', methods=['GET'])
 def afficher_livraisons():
+    """
+    Affiche la page des livraisons.
+
+    Retourne:
+        str: Le contenu HTML de la page.
+    """
 
     connection = None
     commandes = {}
@@ -598,6 +798,15 @@ def afficher_livraisons():
 
 @app.route('/livraison/terminer/<int:id_commande>', methods=['POST'])
 def terminer_livraison(id_commande):
+    """
+    Marque une commande comme livrée.
+
+    Paramètres:
+        id_commande (int): L'identifiant de la commande.
+
+    Retourne:
+        Response: Une redirection vers la page des livraisons.
+    """
     connection = None
     try:
         connection = connection_bd()
